@@ -137,7 +137,7 @@ class WeatherForecast:
                         **temperature_text_style(),
                     ),
                 ],
-                width=70,
+                width=80,
                 alignment=ft.MainAxisAlignment.SPACE_BETWEEN)
                 for weather in self.__weather_data
             ],

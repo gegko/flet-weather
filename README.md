@@ -1,4 +1,5 @@
 # flet-weather
+shows weather based on your ip
 
 ```
 python3 -m venv venv
