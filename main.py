@@ -1,47 +1,13 @@
 import flet as ft
+from weather import (
+    HiddenWeatherContent,
+    WeatherForecast,
+    get_current_weather,
+    get_geo_data,
+)
 
 
-def hidden_content():
-    return [
-        ('assets/view.png', '10 Km', 'Visibility'),
-        ('assets/barometer.png', '30.81 inHg', 'Pressure'),
-        ('assets/sunset.png', '11:40 PM', 'Sunset'),
-        ('assets/sunrise.png', '02:41 PM', 'Sunrise'),
-    ]
-
-
-def hidden_grid():
-    return ft.GridView(
-        controls=[
-            ft.Container(
-                alignment=ft.alignment.center,
-                bgcolor=ft.colors.WHITE10,
-                border_radius=5,
-                content=ft.Column(
-                    controls=[
-                        ft.Image(
-                            src=src,
-                            color=ft.colors.WHITE70,
-                            height=50,
-                            width=50
-                        ),
-                        ft.Text(text, color=ft.colors.WHITE70, size=16),
-                        ft.Text(sub_text, color=ft.colors.WHITE30, size=11)
-                    ],
-                    horizontal_alignment=ft.CrossAxisAlignment.CENTER,
-                ),
-                padding=30,
-            )
-            for src, text, sub_text in hidden_content()
-        ],
-        expand=1,
-        max_extent=320,
-        spacing=5,
-        run_spacing=5,
-    )
-
-
-def expand_container(e):
+def expand_container(e: ft.ControlEvent) -> None:
     top_container = e.control
     if e.data == 'true':
         top_container.height = 700
@@ -51,67 +17,19 @@ def expand_container(e):
         top_container.update()
 
 
-def weather_content():
-    return [
-        ('Tue', 'assets/sun.png', ft.colors.YELLOW_400, 'Clear', '0', '-3'),
-        ('Wed', 'assets/cloud.png', ft.colors.LIGHT_BLUE_300, 'Clouds', '1', '-2'),
-        ('Thu', 'assets/snow.png', ft.colors.LIGHT_BLUE_300, 'Snow', '1', '-1'),
-        ('Fri', 'assets/snow.png', ft.colors.LIGHT_BLUE_300, 'Snow', '2', '1'),
-        ('Sat', 'assets/snow.png', ft.colors.LIGHT_BLUE_300, 'Snow', '1', '0'),
-        ('Sun', 'assets/cloud.png', ft.colors.LIGHT_BLUE_300, 'Clouds', '0', '-1'),
-        ('Mon', 'assets/snow.png', ft.colors.LIGHT_BLUE_300, 'Snow', '0', '-6'),
-    ]
-
-
-def weekly_content():
+def weekly_content() -> ft.Row:
+    weather = WeatherForecast()
     return ft.Row(
         controls=[
-            ft.Column(
-                controls=[
-                    ft.Text(day, size=30, color=ft.colors.WHITE)
-                    for day, *_ in weather_content()
-                ],
-                alignment=ft.MainAxisAlignment.SPACE_EVENLY,
-            ),
-            ft.Column(
-                controls=[
-                    ft.Row(controls=[
-                        ft.Image(icon, width=40, height=40),
-                        ft.Text(weather, size=18, color=ft.colors.WHITE38),
-                    ],
-                    vertical_alignment=ft.CrossAxisAlignment.CENTER)
-                    for _, icon, color, weather, *_ in weather_content()
-                ],
-                alignment=ft.MainAxisAlignment.SPACE_EVENLY,
-            ),
-            ft.Column(
-                controls=[
-                    ft.Row(controls=[
-                        ft.Text(
-                            day_celc,
-                            size=30,
-                            weight=ft.FontWeight.W_100,
-                            color=ft.colors.WHITE,
-                        ),
-                        ft.Text(
-                            night_celc,
-                            size=30,
-                            weight=ft.FontWeight.W_100,
-                            color=ft.colors.WHITE,
-                        ),
-                    ],
-                    width=70,
-                    alignment=ft.MainAxisAlignment.SPACE_BETWEEN)
-                    for *_, day_celc, night_celc in weather_content()
-                ],
-                alignment=ft.MainAxisAlignment.SPACE_EVENLY,
-            ),
+            weather.weekday,
+            weather.weather_icon,
+            weather.temperature
         ],
-        alignment=ft.MainAxisAlignment.SPACE_BETWEEN
+        alignment=ft.MainAxisAlignment.SPACE_BETWEEN,
     )
 
 
-def main_container():
+def main_container() -> ft.Container:
     return ft.Container(
         alignment=ft.alignment.center,
         bgcolor=ft.colors.BLACK87,
@@ -123,24 +41,34 @@ def main_container():
     )
 
 
-def main_weather_content():
+def main_weather_content() -> ft.Row:
+    main_weather = get_current_weather()
     return ft.Row(
         controls=[
-            ft.Image('assets/sun-cloud.png', scale=1.33),
+            ft.Image(
+                f'assets/weather_icons/set01/big/{main_weather["icon"]}.png',
+                scale=1.33,
+            ),
             ft.Column(
                 controls=[
                     ft.Text('Today', color=ft.colors.WHITE, 
                             text_align=ft.TextAlign.CENTER),
-                    ft.Text('-3°', color=ft.colors.WHITE, size=65, 
-                            text_align=ft.TextAlign.CENTER),
-                    ft.Text('Clouds • Overcast', size=13, 
-                            color=ft.colors.WHITE38, 
-                            text_align=ft.TextAlign.CENTER)
+                    ft.Text(
+                        main_weather['temperature'],
+                        size=65,
+                        color=ft.colors.WHITE,
+                        text_align=ft.TextAlign.CENTER,
+                    ),
+                    ft.Text(
+                        main_weather['summary'],
+                        size=13, 
+                        color=ft.colors.WHITE38,
+                        text_align=ft.TextAlign.CENTER,
+                    )
                 ],
                 horizontal_alignment=ft.CrossAxisAlignment.CENTER,
                 alignment=ft.MainAxisAlignment.SPACE_EVENLY,
                 spacing=1,
-                
             )
         ],
         alignment=ft.MainAxisAlignment.SPACE_EVENLY,
@@ -148,76 +76,65 @@ def main_weather_content():
     )
 
 
-def additional_weather_content():
+def additional_weather_content() -> ft.Row:
+    additional_weather = get_current_weather()
+    icons_style = {
+        "color": ft.colors.WHITE70,
+        "width": 25,
+        "height": 25,
+    }
+    text_style = {
+        "color": ft.colors.WHITE70,
+        "weight": ft.FontWeight.W_400,
+    }
+    sub_text_style = {
+        "color": ft.colors.WHITE24,
+        "size": 12,
+    }
+    column_style = {
+        "spacing": 1,
+        "horizontal_alignment": ft.CrossAxisAlignment.CENTER,
+    }
     return ft.Row(
         controls=[
             ft.Column(
                 controls=[
-                    ft.Image(
-                        'assets/winds.png',
-                        color=ft.colors.WHITE70,
-                        height=25,
-                        width=25
-                    ),
-                    ft.Text(
-                        '1 km/h',
-                        color=ft.colors.WHITE70,
-                        weight=ft.FontWeight.W_400
-                    ),
-                    ft.Text('Wind', color=ft.colors.WHITE24, size=12)
+                    ft.Image('assets/winds.png', **icons_style),
+                    ft.Text(additional_weather['wind_speed'], **text_style),
+                    ft.Text('Wind', **sub_text_style)
                 ],
-                spacing=1,
-                horizontal_alignment=ft.CrossAxisAlignment.CENTER
+                **column_style,
             ),
             ft.Column(
                 controls=[
-                    ft.Image(
-                        'assets/humidity.png',
-                        color=ft.colors.WHITE70,
-                        height=25,
-                        width=25
-                    ),
-                    ft.Text(
-                        '85%',
-                        color=ft.colors.WHITE70,
-                        weight=ft.FontWeight.W_400
-                    ),
-                    ft.Text('Humidity', color=ft.colors.WHITE24, size=12)
+                    ft.Image('assets/humidity.png', **icons_style),
+                    ft.Text(additional_weather['humidity'], **text_style),
+                    ft.Text('Humidity', **sub_text_style)
                 ],
-                spacing=1,
-                horizontal_alignment=ft.CrossAxisAlignment.CENTER
+                **column_style,
             ),
             ft.Column(
                 controls=[
-                    ft.Image(
-                        'assets/thermometer.png',
-                        color=ft.colors.WHITE70,
-                        height=25,
-                        width=25
-                    ),
-                    ft.Text(
-                        '-4°',
-                        color=ft.colors.WHITE70,
-                        weight=ft.FontWeight.W_400
-                    ),
-                    ft.Text('Feels Like', color=ft.colors.WHITE24, size=12)
+                    ft.Image('assets/thermometer.png', **icons_style),
+                    ft.Text(additional_weather['feels_like'], **text_style),
+                    ft.Text('Feels Like', **sub_text_style)
                 ],
-                spacing=1,
-                horizontal_alignment=ft.CrossAxisAlignment.CENTER
+                **column_style,
             ),
         ],
         alignment=ft.MainAxisAlignment.SPACE_EVENLY
     )
 
 
-def top_container_content():
+def top_container_content() -> ft.Column:
+    city = get_geo_data()
     return ft.Column(
         controls=[
             ft.Container(
-                height=40,
                 width=400,
+                height=40,
                 content=ft.Text(
-                    'Toronto, CA', 
+                    f"{city['city']}, {city['country']}", 
                     weight=ft.FontWeight.W_400, 
                     size=18, 
                     color=ft.colors.WHITE, 
@@ -227,8 +144,8 @@ def top_container_content():
             ),
             ft.Container(
                 alignment=ft.alignment.center,
-                height=160,
                 width=400,
+                height=160,
                 content=main_weather_content(),
             ),
             ft.Container(
@@ -240,14 +157,14 @@ def top_container_content():
             ),
             ft.Container(
                 alignment=ft.alignment.center,
-                height=100,
                 width=400,
+                height=100,
                 content=additional_weather_content()
             ),
             ft.Container(
-                height=400,
                 width=400,
-                content=hidden_grid(),
+                height=400,
+                content=HiddenWeatherContent(),
                 padding=ft.padding.symmetric(horizontal=25),
             )
         ],
@@ -256,7 +173,7 @@ def top_container_content():
     )
 
 
-def top_container():
+def top_container() -> ft.Container:
     return ft.Container(
         alignment=ft.alignment.center,
         bgcolor=ft.colors.BLUE_600,
@@ -274,10 +191,11 @@ def top_container():
         on_hover=expand_container,
         animate=ft.Animation(400, ft.AnimationCurve.EASE_OUT),
         content=top_container_content(),
+        
     )
 
 
-def main_stack():
+def main_stack() -> ft.Stack:
     return ft.Stack(
         controls=[
             main_container(),
@@ -286,10 +204,9 @@ def main_stack():
     )
 
 
-def main(page: ft.Page):
+def main(page: ft.Page) -> None:
     page.vertical_alignment = ft.MainAxisAlignment.CENTER
     page.horizontal_alignment = ft.CrossAxisAlignment.CENTER
     page.add(main_stack())
-
 
 ft.app(main, view=ft.AppView.WEB_BROWSER, assets_dir='.')
